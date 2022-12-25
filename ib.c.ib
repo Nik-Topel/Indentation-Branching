@@ -14,8 +14,6 @@ Ib is its own prove of concept, it is entirelly written in ib-C :3
 
 support multiline comments
 
-fix "//" //comment 
-
 begin with dynamic allocation (also replace strcpy(l_line, line) with addr)
 
 */
@@ -67,19 +65,20 @@ static bool getln(char *line, size_t *line_s, FILE *file)
 		strcat(line, apnd)
 	return 1
 
-// "//"
-
-static char *find_end(const char *line)
-	char *ptf = strchr(line, '"'), *ptr = strstr(line, "//")
-	size_t c = 0
-	do
-		while (ptf && ptf < ptr)
-			ptf = strchr(ptf, '"')
-			++c
-		ptr = strstr(ptr, "//")
-	while (c % 2 != 0 && ptr)
-	while (ptr != line && *ptr == ' ')
-		ptr--
+static const char *find_end(const char *line)
+	char *ptfu = strchr(line, '\''), *ptf = strchr(line, '"'), *ptr
+	ptr = strstr(line, "//")
+	bool open = true
+	while (ptf)
+		if (open)
+			if (ptf > ptr)
+				break
+			else
+				ptr = strstr(ptr + 1, "//")
+		ptf = strchr(ptf + 1, '"')
+		open = !open
+	if (!ptr)
+		return line + strlen(line)
 	return ptr
 
 static bool check_word(const char *line, const char *word, const char *stop)
@@ -136,7 +135,7 @@ inline static enum type modeset(const char *path)
 			return js
 		if (!strcmp(dot, ".css"))
 			return css
-	warn("unable to detect filetype, disabeling all language specific rules: ", path)
+	warn("unable to detect filetype, disabling all language specific rules: ", path)
 	return norm
 
 static void parser(char *path)
@@ -146,9 +145,9 @@ static void parser(char *path)
 		.ntermc = 0
 	size_t l_line_s = 0, line_s = 0
 	size_t l_tab = 0
-	//char   dir
-	char   line[MAX_LN], l_line[MAX_LN] = "", out_path[255], *com = NULL
+	char   line[MAX_LN], l_line[MAX_LN] = "", out_path[255]
 	FILE   *out, *src
+	bool   multilncom = false
 	
 	if (strlen(path) < 3 || strcmp(path + strlen(path) - 3, ".ib"))
 		except("defined input is not a ib file", 1)
@@ -166,11 +165,11 @@ static void parser(char *path)
 	const enum type file_type = modeset(path)
 	
 	while (getln(line, &line_s, src))
-		
 		const size_t tab = strspn(line, "\t")
+		const char *com = find_end(l_line)
 		if (tab <= l_tab) // line is stable or closing
 			if (l_line[l_tab] != '#' && !(cont.ntermc && cont.nterms[cont.ntermc - 1] == l_tab - 1))
-				terminate(l_line, strrchr(l_line, '"') < com ? (size_t) (com - l_line) : l_line_s, l_tab)
+				terminate(l_line, (size_t) (com - l_line), l_tab)
 		else if ((!strchr(l_line, '(') && l_line_s > l_tab + 1 && \
 		          strncmp("else", l_line + l_tab, 4) && \
 		          strncmp("do", l_line + l_tab, 2))) // line is not function or special case
@@ -178,20 +177,20 @@ static void parser(char *path)
 				if (l_line[l_line_s - 2] == '=' || \
 				    check_word(l_line, "enum", strchr(l_line, '(')))
 					cont.nterms[cont.ntermc++] = l_tab
-				cont.tbranchs[cont.tbranchc++] = l_tab
+			cont.tbranchs[cont.tbranchc++] = l_tab
 		else if (l_line[l_line_s - 2] == ':')
 			cont.nbranchs[cont.nbranchc++] = l_tab
 		fputs(l_line, out)
 		
-			const char dir = tab < l_tab ? -1 : (l_tab < tab ? 1 : 0)
-			if (dir != 0)
-				branch(out, &l_tab, dir, tab, &cont)
+		const char dir = tab < l_tab ? -1 : (l_tab < tab ? 1 : 0)
+		if (dir != 0)
+			branch(out, &l_tab, dir, tab, &cont)
 		
 		strcpy(l_line, line)
 		l_line_s = line_s
-		com = find_end(l_line)
 	if (l_line[l_tab] != '#' && !(cont.ntermc && cont.nterms[cont.ntermc - 1] == l_tab))
-		terminate(l_line, strrchr(l_line, '"') < com ? (size_t) (com - l_line) : l_line_s, l_tab)
+		const char *com = find_end(l_line)
+		terminate(l_line, (size_t) (com - l_line), l_tab)
 	fputs(l_line, out)
 	if (l_tab != 0)
 		branch(out, &l_tab, -1, 0, &cont)
