@@ -67,12 +67,12 @@ int main()
 
 its written in its own input, althought I do provide a bootstrap c file
 
-# Initial Build
+### Initial Build
 ~~~
 (sudo) make bootstrap
 ~~~
 
-# Build with IB installed
+### Build with IB installed
 
 ~~~
 make
