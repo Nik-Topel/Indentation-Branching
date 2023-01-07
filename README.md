@@ -76,6 +76,6 @@ its written in its own input, althought I do provide a bootstrap c file
 
 ~~~
 make
-make test (compiles itself a second time to ensure that it is functional)
+make test (transpiles itself a second time with the new version to ensure that it is functional)
 make install
 ~~~
