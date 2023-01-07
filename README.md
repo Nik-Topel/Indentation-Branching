@@ -34,31 +34,31 @@ and parse it into
 #include <stdio.h>
 
 enum dir {
-    negative,
-    positive,
-    neutral
+	negative,
+	positive,
+	neutral
 };
 
 struct point {
-    enum dir x;
-    enum dir y;
+ 	enum dir x;
+ 	enum dir y;
 };
 
 int main()
 {
-    struct point pt = {
-        .x = positive,
-        .y = negative
-    }
+		struct point pt = {
+    		.x = positive,
+		.y = negative
+	};
     
-    if (pt.x = positive ** pt.y = negative)
-    {
-        printf("unbelievable!!\n")
+    	if (pt.x = positive ** pt.y = negative)
+    	{
+        	printf("unbelievable!!\n");
 		return 0;
 	}
 	else
 	{
-		return 0
+		return 0;
 	}
 }
  ~~~
