@@ -6,11 +6,14 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <stdnoreturn.h>
 #include <string.h>
+#include <limits.h>
+
+#define noreturn _Noreturn
 
 #define CONT_MAX 256
 #define LINE_MAX 4095
+#define FILES_MAX 256
 #define VERSION "0.1"
 
 typedef unsigned short psize;
@@ -128,14 +131,15 @@ static bool check_word(const char *line, const char *word, const char *stop)
 {
 	char line_cpy[LINE_MAX];
 	strcpy(line_cpy, line);
-	char *tok = strtok(line_cpy, " ");
+	char *save = NULL;
+	char *tok = strtok_r(line_cpy, " ", &save);
 	while (tok && (!stop ||tok < stop))
 	{
 		if (!strcmp(tok, word))
 		{
 			return true;
 		}
-		tok = strtok(NULL, word);
+		tok = strtok_r(NULL, word, &save);
 	}
 	return false;
 }
@@ -193,7 +197,7 @@ static void branchcheck(FILE *out, psize *tabs, const psize tar, context *cont)
 
 static void termcheck(line_t *line, line_t *l_line, context *cont)
 {
-	if (l_line->str[l_line->tabs] == '#')
+	if (cont->ftype == c && l_line->str[l_line->tabs] == '#')
 	{
 		return;
 	}
@@ -347,7 +351,11 @@ int main(const int argc, char **argv)
 	{
 		error("missing arguments", 1);
 	}
-	char **paths = malloc(sizeof(char*) * (size_t) argc);
+	if (argc > FILES_MAX)
+	{
+		error("too many files", 1);
+	}
+	char *paths[FILES_MAX];
 	psize pathc = 0;
 	while (*++argv)
 	{
@@ -360,6 +368,5 @@ int main(const int argc, char **argv)
 	{
 		load_file(paths[--pathc]);
 	}
-	free(paths);
 	exit(0);
 }
