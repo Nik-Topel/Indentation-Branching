@@ -26,7 +26,7 @@ int main()
 		       "multiline string!!!\n")
 		return 0
 	else
-		return 0
+		return 1
 ~~~
 
 and parse it into
@@ -60,7 +60,7 @@ int main()
 	}
 	else
 	{
-		return 0;
+		return 1;
 	}
 }
  ~~~
