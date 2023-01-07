@@ -21,7 +21,7 @@ int main()
 		.x = positive
 		.y = negative
     
-	if (pt.x = positive ** pt.y = negative)
+	if (pt.x = positive && pt.y = negative)
     	printf("unbelievable!!\n")
 		return 0;
 	else
@@ -51,7 +51,7 @@ int main()
 		.y = negative
 	};
     
-    	if (pt.x = positive ** pt.y = negative)
+    	if (pt.x = positive && pt.y = negative)
     	{
         	printf("unbelievable!!\n");
 		return 0;
