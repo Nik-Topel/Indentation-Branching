@@ -1,6 +1,11 @@
-/*                                *;
- *   ib (indentation branching)   *;
- *                                */;
+/*                                *
+ *   ib (indentation branching)   *
+ *                                */
+
+#define VERSION "0.1"
+
+#define CONT_MAX 256
+#define FILE_MAX 256
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,11 +15,6 @@
 #include <limits.h>
 
 #define noreturn _Noreturn
-
-#define CONT_MAX 256
-#define LINE_MAX 4095
-#define FILES_MAX 256
-#define VERSION "0.1"
 
 typedef unsigned short psize;
 
@@ -65,6 +65,7 @@ typedef enum filetype type;
 struct parser_context
 {
 	const type ftype;
+	bool       mcom;
 	psize      tbranchc;
 	psize      tbranchs[CONT_MAX];
 	psize      nbranchc;
@@ -82,17 +83,16 @@ static void transfere_line(line_t *line, line_t *input_line)
 	line->tabs      = input_line->tabs;
 }
 
-static psize find_end(const char *line)
+static psize find_valid(const char *line, const char *tok)
 {
-	//char *ptfu = strchr(line, '\'')
 	char *ptf  = strchr(line, '"');
-	char *ptr  = strstr(line, "//");
+	char *ptr  = strstr(line, tok);
 	bool open  = true;
 	while (ptf && !(open && ptf > ptr))
 	{
 		if (open)
 		{
-			ptr = strstr(ptr + 1, "//"); // test
+			ptr = strstr(ptr + 1, tok); // test
 		}
 		ptf  = strchr(ptf + 1, '"');
 		open = !open;
@@ -104,7 +104,27 @@ static psize find_end(const char *line)
 	return (psize) (ptr - line);
 }
 
-static bool get_line(line_t *line, FILE *file)
+static psize find_end(const char *line, context *cont)
+{
+	psize sline = find_valid(line, "//");
+	psize mline = find_valid(line, "/*");
+	psize cline = find_valid(line, "*/");
+	if (!cont->mcom && mline < sline)
+	{
+		cont->mcom = true;
+	}
+	if (cont->mcom)
+	{
+		if (cline < sline && cline < mline)
+		{
+			cont->mcom = false;
+		}
+		return 0;
+	}
+	return sline < mline ? sline : mline;
+}
+
+static bool get_line(line_t *line, FILE *file, context *cont)
 {
 	if (!fgets(line->str, LINE_MAX, file))
 	{
@@ -123,7 +143,7 @@ static bool get_line(line_t *line, FILE *file)
 		size           += strlen(apnd);
 		strcat(line->str, apnd);
 	}
-	line->comment = find_end(line->str);
+	line->comment = find_end(line->str, cont);
 	return true;
 }
 
@@ -179,15 +199,15 @@ static void branchcheck(FILE *out, psize *tabs, const psize tar, context *cont)
 	const char dir = tar < *tabs ? -1 : (*tabs < tar ? 1 : 0);
 	while (tar != *tabs)
 	{
-		if (!(cont->nbranchc && cont->nbranchs[cont->nbranchc - 1] == *tabs))
+		*tabs += (psize) dir;
+		if (!cont->nbranchc || cont->nbranchs[cont->nbranchc - 1] != (dir != 1 ? *tabs : *tabs - 1))
 		{
-			brackinate(out, dir == -1 ? *tabs - 1 : *tabs, dir == 1 ? '{' : '}', cont);
+			brackinate(out, dir == 1 ? *tabs - 1 : *tabs, dir == 1 ? '{' : '}', cont);
 		}
-		else
+		else if (dir == -1)
 		{
 			--cont->nbranchc;
 		}
-		*tabs += (psize) dir;
 		if (dir == -1 && (cont->ctermc && cont->cterms[cont->ctermc - 1] == *tabs))
 		{
 			--cont->ctermc;
@@ -222,6 +242,11 @@ static void termcheck(line_t *line, line_t *l_line, context *cont)
 		{
 			cont->cterms[cont->ctermc++] = l_line->tabs;
 		}
+		if (l_line->str[l_line->comment - 2] == ':')
+		{
+			cont->nbranchs[cont->nbranchc++] = l_line->tabs;
+			return;
+		}
 		cont->tbranchs[cont->tbranchc++] = l_line->tabs;
 	}
 	else if (l_line->str[l_line->comment - 2] == ':')
@@ -234,19 +259,26 @@ static void parser(FILE *out, FILE *src, const type ftype)
 {
 	context cont =
 	{
+		.ftype    = ftype,
 		.tbranchc = 0,
 		.nbranchc = 0,
 		.ctermc   = 0,
-		.ftype    = ftype
+		.mcom     = 0
 	};
 	line_t  line, l_line;
-	get_line(&l_line, src);
+	get_line(&l_line, src, &cont);
 	while (true)
 	{
-		const bool cond = get_line(&line, src);
-		termcheck(&line, &l_line, &cont);
+		const bool cond = get_line(&line, src, &cont);
+		if (line.comment != 0)
+		{
+			termcheck(&line, &l_line, &cont);
+		}
 		fputs(l_line.str, out);
-		branchcheck(out, &l_line.tabs, line.tabs, &cont);
+		if (line.comment != 0)
+		{
+			branchcheck(out, &l_line.tabs, line.tabs, &cont);
+		}
 		if (!cond)
 		{
 			break;
@@ -296,7 +328,7 @@ static void load_file(char *path)
 static void help()
 {
 	puts("Usage ib: [FILE] ...\n" \
-	     "ib is a parser for languages which are not line based\n\n" \
+	     "ib is a transpiler for languages which are not line based\n\n" \
 	     " -h --help    -> print this page\n" \
 	     " -v --version -> show current version");
 	exit(0);
@@ -317,7 +349,6 @@ static bool argument_parser(const char *arg)
 	switch (arg[1])
 	{
 		case '-':
-		{
 			if (!strcmp("version", arg + 2))
 			{
 				version();
@@ -328,20 +359,13 @@ static bool argument_parser(const char *arg)
 			}
 			warn("invalid option", arg);
 			return true;
-		};
 		case 'h':
-		{
 			help();
-		};
 		case 'V':
-		{
 			version();
-		};
 		default :
-		{
 			warn("invalid option", arg);
 			return true;
-		};
 	}
 }
 
@@ -351,11 +375,11 @@ int main(const int argc, char **argv)
 	{
 		error("missing arguments", 1);
 	}
-	if (argc > FILES_MAX)
+	if (argc > FILE_MAX)
 	{
 		error("too many files", 1);
 	}
-	char *paths[FILES_MAX];
+	char *paths[FILE_MAX];
 	psize pathc = 0;
 	while (*++argv)
 	{
