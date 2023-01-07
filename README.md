@@ -1,6 +1,6 @@
 # Indentation-Branching
 
-a transpiler for c allowing you to forego the usage of curlybraces, semicolons and in case of enums and struct initialisation lists, commas, by parsing the identation + some added language specifics
+a transpiler for c allowing you to forego the usage of curlybraces, semicolons and in case of enums and struct initialisation lists, commas, by parsing the identation, newlines + some added language specifics
 
 this allows you to write
 
