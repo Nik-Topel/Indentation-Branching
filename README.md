@@ -24,7 +24,7 @@ int main()
 	if (pt.x = positive && pt.y = negative)
     		printf("unbelievable!! " \\
 		       "multiline string!!!\n")
-		return 0;
+		return 0
 	else
 		return 0
 ~~~
