@@ -1,31 +1,33 @@
-PREFIX := ${HOME}
+PREFIX := /usr
 
-CC := clang
-STRIP := llvm-strip
+CC := gcc
+STRIP := strip
 
-CFLAGS := -std=c11 -Weverything -Wno-declaration-after-statement -glldb
+CFLAGS := -Os -std=c11 -Wno-declaration-after-statement -g
 LDFLAGS :=
 
 #STRIPFLAGS := --strip-all -R .comment -R .eh_frame -R .data.rel.ro -R .got.plt -R .dtors -x
-STRIPFLAGS :=
+STRIPFLAGS := 
+
 
 all:
 	ib ib.c.ib
 	$(CC) ib.c -o ib_prot $(CFLAGS) $(LDFLAGS)
-	#${STRIP} $(STRIPFLAGS) ib_prot -o ib
+	${STRIP} $(STRIPFLAGS) ib_prot -o ib
 
 install:
 	cp ib ${PREFIX}/bin/
 
 test: all
 	rm ib.c
-	./ib_prot ib.c.ib
-	$(CC) ib.c -o ib_prot $(CFLAGS) $(LDFLAGS)
-	${STRIP} $(STRIPFLAGS) ib_prot -o ib
-	rm ib.c
-	./ib_prot ib.c.ib
+	./ib ib.c.ib
 	$(CC) ib.c -o ib_prot $(CFLAGS) $(LDFLAGS)
 	${STRIP} $(STRIPFLAGS) ib_prot -o ib
 
 clean:
 	rm ib.c ib_prot ib
+
+bootstrap:
+	$(CC) ib.c -o ib_prot $(CFLAGS) $(LDFLAGS)
+	${STRIP} $(STRIPFLAGS) ib_prot -o ib
+	cp ib ${PREFIX}/bin/
