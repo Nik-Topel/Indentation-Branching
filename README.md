@@ -84,6 +84,7 @@ its written in its own input, althought I do provide a bootstrap c file
 
 ~~~
 make
-make test (transpiles itself a second time with the new version to ensure that it is functional before bricking your install)
+make test (transpiles itself a second time with the new version,
+to ensure that it is functional before bricking your install)
 (sudo) make install
 ~~~
