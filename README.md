@@ -7,9 +7,25 @@ this allows you to write
 ~~~
 #include <stdio.h>
 
+enum dir
+    negative
+    positive
+    neutral
+
+struct point
+    enum dir x
+    enum dir y
+
 int main()
-  printf("hello world")
-  return 0
+    struct point pt =
+    .x = positive
+    .y = negative
+    
+    if (pt.x = positive ** pt.y = negative)
+        printf("unbelievable!!\n")
+        return 0;
+    else
+        return 0
 ~~~
 
 and parse it into
@@ -17,11 +33,34 @@ and parse it into
 ~~~
 #include <stdio.h>
 
+enum dir {
+    negative,
+    positive,
+    neutral
+};
+
+struct point {
+    enum dir x;
+    enum dir y;
+};
+
 int main()
 {
-  printf("hello world");
-  return 0;
- }
+    struct point pt = {
+        .x = positive,
+        .y = negative
+    }
+    
+    if (pt.x = positive ** pt.y = negative)
+    {
+        printf("unbelievable!!\n")
+		return 0;
+	}
+	else
+	{
+		return 0
+	}
+}
  ~~~
  
  to make it as usable as possible I also added exception for constructs like enums and structs
