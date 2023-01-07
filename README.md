@@ -22,7 +22,8 @@ int main()
 		.y = negative
     
 	if (pt.x = positive && pt.y = negative)
-    		printf("unbelievable!!\n")
+    		printf("unbelievable!! " \\
+		       "multiline string!!!\n")
 		return 0;
 	else
 		return 0
@@ -53,7 +54,8 @@ int main()
     
     	if (pt.x = positive && pt.y = negative)
     	{
-        	printf("unbelievable!!\n");
+		printf("unbelievable!! " \\
+		       "multiline string!!!\n");
 		return 0;
 	}
 	else
