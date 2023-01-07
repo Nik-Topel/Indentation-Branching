@@ -14,6 +14,10 @@
 #include <string.h>
 #include <limits.h>
 
+#ifndef LINE_MAX
+#	define LINE_MAX 2048
+#endif
+
 #define noreturn _Noreturn
 
 typedef unsigned short psize

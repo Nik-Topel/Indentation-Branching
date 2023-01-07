@@ -2,7 +2,7 @@
  *   ib (indentation branching)   *
  *                                */
 
-#define VERSION "0.1"
+#define VERSION "0.11"
 
 #define CONT_MAX 256
 #define FILE_MAX 256
@@ -13,6 +13,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
+
+#ifndef LINE_MAX
+#	define LINE_MAX 2048
+#endif
 
 #define noreturn _Noreturn
 
