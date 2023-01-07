@@ -1,0 +1,336 @@
+/*;
+ib (indentation branching);
+
+is a tool intended to make the traditional symbols in programming;
+
+" ;{} ";
+
+Obsolete!;
+
+Ib is its own prove of concept, it is entirelly written in ib-C :3;
+*/;
+
+/*;
+
+support multiline comments;
+
+begin with dynamic allocation (also replace strcpy(l_line, line) with addr);
+
+*/;
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <stdbool.h>
+#include <stdnoreturn.h>
+
+#define MAX_LN 510
+#define MAX_STRCTS 16
+
+struct context
+{
+	size_t tbranchc;
+	size_t tbranchs[MAX_STRCTS];
+	size_t nbranchc;
+	size_t nbranchs[MAX_STRCTS];
+	size_t ntermc;
+	size_t nterms[MAX_STRCTS];
+};
+
+enum type
+{
+	norm,
+	c,
+	cpp,
+	java,
+	rust,
+	go,
+	js,
+	css
+};
+
+noreturn static void except(const char *msg, const int code)
+{
+	printf("exception: %s\n", msg);
+	exit(code);
+}
+
+inline static void warn(const char *typ, const char *msg)
+{
+	printf("warning: %s%s\n", typ, msg);
+}
+
+static bool getln(char *line, size_t *line_s, FILE *file)
+{
+	if (!fgets(line, MAX_LN, file))
+	{
+		return 0;
+	}
+	*line_s = strlen(line);
+	while (line[*line_s - 2] == '\\')
+	{
+		char apnd[MAX_LN];
+		if (!fgets(apnd, MAX_LN, file))
+		{
+			break;
+		}
+		*line_s += strlen(apnd);
+		strcat(line, apnd);
+	}
+	return 1;
+}
+
+static const char *find_end(const char *line)
+{
+	char *ptfu = strchr(line, '\''), *ptf = strchr(line, '"'), *ptr;
+	ptr = strstr(line, "//");
+	bool open = true;
+	while (ptf)
+	{
+		if (open)
+		{
+			if (ptf > ptr)
+			{
+				break;
+			}
+			else
+			{
+				ptr = strstr(ptr + 1, "//");
+			}
+		}
+		ptf = strchr(ptf + 1, '"');
+		open = !open;
+	}
+	if (!ptr)
+	{
+		return line + strlen(line);
+	}
+	return ptr;
+}
+
+static bool check_word(const char *line, const char *word, const char *stop)
+{
+	char line_cpy[MAX_LN];
+	strcpy(line_cpy, line);
+	char *tok = strtok(line_cpy, " ");
+	while (tok && (!stop ||tok < stop))
+	{
+		if (!strcmp(tok, word))
+		{
+			return true;
+		}
+		tok = strtok(NULL, word);
+	}
+	return false;
+}
+
+static void terminate(char *line, const size_t line_s, const size_t tabs)
+{
+	if (line_s > tabs + 1)
+	{
+		if (line[line_s - 2] == ';')
+		{
+			warn("line is already terminated: ", line);
+		}
+		memmove(line + line_s, line + line_s - 1, strlen(line + line_s - 2));
+		line[line_s - 1] = ';';
+	}
+}
+
+static void brackinate(FILE *out, const size_t tabs, const char br, struct context *cont)
+{
+	size_t t = 0;
+	while(t++ < tabs)
+	{
+		fputc('\t', out);
+	}
+	fputc(br, out);
+	if (br != '{' && cont->tbranchc && cont->tbranchs[cont->tbranchc - 1] == tabs)
+	{
+		fputc(';', out);
+		--cont->tbranchc;
+	}
+	fputc('\n', out);
+}
+
+static void branch(FILE *out, size_t *tabs, const char dir, const size_t tar, struct context *cont)
+{
+	while (tar != *tabs)
+	{
+		if (!(cont->nbranchc && cont->nbranchs[cont->nbranchc - 1] == *tabs))
+		{
+			brackinate(out, dir == -1 ? *tabs - 1 : *tabs, dir == 1 ? '{' : '}', cont);
+		}
+		else
+		{
+			--cont->nbranchc;
+		}
+		*tabs += (size_t) dir;
+		if (dir == -1 && (cont->ntermc && cont->nterms[cont->ntermc - 1] == *tabs))
+		{
+			--cont->ntermc;
+		}
+	}
+}
+
+inline static enum type modeset(const char *path)
+{
+	const char *dot = strrchr(path, '.');
+	if (dot)
+	{
+		if (!strcmp(dot, ".c") || !strcmp(dot, ".h"))
+		{
+			return c;
+		}
+		if (!strcmp(dot, ".cpp") || !strcmp(dot, ".hpp"))
+		{
+			return cpp;
+		}
+		if (!strcmp(dot, ".java"))
+		{
+			return java;
+		}
+		if (!strcmp(dot, ".rs"))
+		{
+			return rust;
+		}
+		if (!strcmp(dot, ".go"))
+		{
+			return go;
+		}
+		if (!strcmp(dot, ".js"))
+		{
+			return js;
+		}
+		if (!strcmp(dot, ".css"))
+		{
+			return css;
+		}
+	}
+	warn("unable to detect filetype, disabling all language specific rules: ", path);
+	return norm;
+}
+
+static void parser(char *path)
+{
+	struct context cont =
+	{
+		.tbranchc = 0,
+		.nbranchc = 0,
+		.ntermc = 0
+	};
+	size_t l_line_s = 0, line_s = 0;
+	size_t l_tab = 0;
+	char   line[MAX_LN], l_line[MAX_LN] = "", out_path[255];
+	FILE   *out, *src;
+	bool   multilncom = false;
+	
+	if (strlen(path) < 3 || strcmp(path + strlen(path) - 3, ".ib"))
+	{
+		except("defined input is not a ib file", 1);
+	}
+	src = fopen(path, "r");
+	if (!src)
+	{
+		except("failed to open source", 1);
+	}
+	
+	strncpy(out_path, path, strrchr(path,'.') - path);
+	path[strrchr(path, '.') - path] = '\0';
+	
+	out = fopen(path, "w");
+	if (!out)
+	{
+		except("failed to open destination", 1);
+	}
+	
+	const enum type file_type = modeset(path);
+	
+	while (getln(line, &line_s, src))
+	{
+		const size_t tab = strspn(line, "\t");
+		const char *com = find_end(l_line);
+		if (tab <= l_tab) // line is stable or closing
+		{
+			if (l_line[l_tab] != '#' && !(cont.ntermc && cont.nterms[cont.ntermc - 1] == l_tab - 1))
+			{
+				terminate(l_line, (size_t) (com - l_line), l_tab);
+			}
+		}
+		else if ((!strchr(l_line, '(') && l_line_s > l_tab + 1 && \
+		          strncmp("else", l_line + l_tab, 4) && \
+		          strncmp("do", l_line + l_tab, 2))) // line is not function or special case
+		{
+			if (file_type != java)
+			{
+				if (l_line[l_line_s - 2] == '=' || \
+				    check_word(l_line, "enum", strchr(l_line, '(')))
+				{
+					cont.nterms[cont.ntermc++] = l_tab;
+				}
+			}
+			cont.tbranchs[cont.tbranchc++] = l_tab;
+		}
+		else if (l_line[l_line_s - 2] == ':')
+		{
+			cont.nbranchs[cont.nbranchc++] = l_tab;
+		}
+		fputs(l_line, out);
+		
+		const char dir = tab < l_tab ? -1 : (l_tab < tab ? 1 : 0);
+		if (dir != 0)
+		{
+			branch(out, &l_tab, dir, tab, &cont);
+		}
+		
+		strcpy(l_line, line);
+		l_line_s = line_s;
+	}
+	if (l_line[l_tab] != '#' && !(cont.ntermc && cont.nterms[cont.ntermc - 1] == l_tab))
+	{
+		const char *com = find_end(l_line);
+		terminate(l_line, (size_t) (com - l_line), l_tab);
+	}
+	fputs(l_line, out);
+	if (l_tab != 0)
+	{
+		branch(out, &l_tab, -1, 0, &cont);
+	}
+	fclose(src);
+	fclose(out);
+}
+
+int main(const int argc, char **argv)
+{
+	if (argc < 2)
+	{
+		except("missing arguments", 1);
+	}
+	
+	char **paths = malloc(sizeof(char*) * (size_t) argc) ; // allocate buffer for paths based on argc
+	unsigned short pathc = 0;
+	while (*++argv)
+	{
+		if (!strcmp("-h", *argv) || !strcmp("--help", *argv))
+		{
+			puts("Usage ib: [FILE] ...\n" \
+			     "ib is a parser for languages which are not line based\n\n" \
+			     " -h --help    -> print this page\n" \
+			     " -v --version -> show current version");
+			exit(0);
+		}
+		if (!strcmp("-V", *argv) || !strcmp("--version", *argv))
+		{
+			fputs("Ibv0", stdout);
+			exit(0);
+		}
+		paths[pathc++] = *argv;
+	}
+	while (pathc)
+	{
+		parser(paths[--pathc]);
+	}
+	free(paths);
+	exit(0);
+}

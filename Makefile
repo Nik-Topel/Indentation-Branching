@@ -19,11 +19,11 @@ install:
 
 test: all
 	rm ib.c
-	./ib ib.c.ib
+	./ib_prot ib.c.ib
 	$(CC) ib.c -o ib_prot $(CFLAGS) $(LDFLAGS)
 	${STRIP} $(STRIPFLAGS) ib_prot -o ib
 	rm ib.c
-	./ib ib.c.ib
+	./ib_prot ib.c.ib
 	$(CC) ib.c -o ib_prot $(CFLAGS) $(LDFLAGS)
 	${STRIP} $(STRIPFLAGS) ib_prot -o ib
 
