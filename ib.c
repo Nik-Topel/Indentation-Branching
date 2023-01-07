@@ -9,9 +9,11 @@
 #include <stdnoreturn.h>
 #include <string.h>
 
-#define MAX_LN 510
-#define MAX_CONT 16
+#define CONT_MAX 256
+#define LINE_MAX 4095
 #define VERSION "0.1"
+
+typedef unsigned short psize;
 
 static void msg_out(const size_t num, ...)
 {
@@ -40,16 +42,11 @@ static void warn(const char *typ, const char *msg)
 	printf("\033[0m");
 }
 
-static void info(const char *typ, const char *msg)
-{
-	msg_out(2, typ, msg);
-}
-
 struct line_type
 {
-	size_t comment;
-	size_t tabs;
-	char   str[MAX_LN];
+	psize comment;
+	psize tabs;
+	char   str[LINE_MAX];
 };
 
 typedef struct line_type line_t;
@@ -64,13 +61,13 @@ typedef enum filetype type;
 
 struct parser_context
 {
-	size_t     tbranchc;
-	size_t     tbranchs[MAX_CONT];
-	size_t     nbranchc;
-	size_t     nbranchs[MAX_CONT];
-	size_t     ctermc;
-	size_t     cterms[MAX_CONT];
 	const type ftype;
+	psize      tbranchc;
+	psize      tbranchs[CONT_MAX];
+	psize      nbranchc;
+	psize      nbranchs[CONT_MAX];
+	psize      ctermc;
+	psize      cterms[CONT_MAX];
 };
 
 typedef struct parser_context context;
@@ -82,9 +79,9 @@ static void transfere_line(line_t *line, line_t *input_line)
 	line->tabs      = input_line->tabs;
 }
 
-static size_t find_end(const char *line)
+static psize find_end(const char *line)
 {
-	char *ptfu = strchr(line, '\'');
+	//char *ptfu = strchr(line, '\'')
 	char *ptf  = strchr(line, '"');
 	char *ptr  = strstr(line, "//");
 	bool open  = true;
@@ -101,22 +98,22 @@ static size_t find_end(const char *line)
 	{
 		return strlen(line);
 	}
-	return (size_t) (ptr - line);
+	return (psize) (ptr - line);
 }
 
 static bool get_line(line_t *line, FILE *file)
 {
-	if (!fgets(line->str, MAX_LN, file))
+	if (!fgets(line->str, LINE_MAX, file))
 	{
 		line->tabs = 0;
 		return false;
 	}
-	size_t size = strlen(line->str);
+	psize size = strlen(line->str);
 	line->tabs = strspn(line->str, "\t");
 	while (line->str[size - 2] == '\\')
 	{
-		char apnd[MAX_LN];
-		if (!fgets(apnd, MAX_LN, file))
+		char apnd[LINE_MAX];
+		if (!fgets(apnd, LINE_MAX, file))
 		{
 			break;
 		}
@@ -129,7 +126,7 @@ static bool get_line(line_t *line, FILE *file)
 
 static bool check_word(const char *line, const char *word, const char *stop)
 {
-	char line_cpy[MAX_LN];
+	char line_cpy[LINE_MAX];
 	strcpy(line_cpy, line);
 	char *tok = strtok(line_cpy, " ");
 	while (tok && (!stop ||tok < stop))
@@ -157,9 +154,9 @@ static void terminate(line_t *line, const char tchar)
 	line->str[line->comment - 1] = tchar;
 }
 
-static void brackinate(FILE *out, const size_t tabs, const char br, context *cont)
+static void brackinate(FILE *out, const psize tabs, const char br, context *cont)
 {
-	size_t t = 0;
+	psize t = 0;
 	while(t++ < tabs)
 	{
 		fputc('\t', out);
@@ -173,7 +170,7 @@ static void brackinate(FILE *out, const size_t tabs, const char br, context *con
 	fputc('\n', out);
 }
 
-static void branchcheck(FILE *out, size_t *tabs, const size_t tar, context *cont)
+static void branchcheck(FILE *out, psize *tabs, const psize tar, context *cont)
 {
 	const char dir = tar < *tabs ? -1 : (*tabs < tar ? 1 : 0);
 	while (tar != *tabs)
@@ -186,7 +183,7 @@ static void branchcheck(FILE *out, size_t *tabs, const size_t tar, context *cont
 		{
 			--cont->nbranchc;
 		}
-		*tabs += (size_t) dir;
+		*tabs += (psize) dir;
 		if (dir == -1 && (cont->ctermc && cont->cterms[cont->ctermc - 1] == *tabs))
 		{
 			--cont->ctermc;
@@ -257,15 +254,15 @@ static void parser(FILE *out, FILE *src, const type ftype)
 static type modeset(const char *path)
 {
 	const char *dot = strrchr(path, '.');
-	if (!dot)
+	if (dot)
 	{
-		warn("unable to detect filetype, disabling all language specific rules", path);
-		return norm;
+		if (!strcmp(dot, ".c") || !strcmp(dot, ".h"))
+		{
+			return c;
+		}
 	}
-	if (!strcmp(dot, ".c") || !strcmp(dot, ".h"))
-	{
-		return c;
-	}
+	warn("unable to detect filetype, disabling all language specific rules", path);
+	return norm;
 }
 
 static void load_file(char *path)
@@ -287,7 +284,6 @@ static void load_file(char *path)
 	{
 		error("failed to open destination", 1);
 	}
-	info("transpilling", path);
 	parser(out, src, modeset(path));
 	fclose(src);
 	fclose(out);
@@ -352,7 +348,7 @@ int main(const int argc, char **argv)
 		error("missing arguments", 1);
 	}
 	char **paths = malloc(sizeof(char*) * (size_t) argc);
-	size_t pathc = 0;
+	psize pathc = 0;
 	while (*++argv)
 	{
 		if (!argument_parser(*argv))

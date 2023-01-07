@@ -3,7 +3,7 @@ PREFIX := /usr
 CC := gcc
 STRIP := strip
 
-CFLAGS := -Os -std=c11 -Wno-declaration-after-statement -g
+CFLAGS := -Os -std=c11 -Wall
 LDFLAGS :=
 
 #STRIPFLAGS := --strip-all -R .comment -R .eh_frame -R .data.rel.ro -R .got.plt -R .dtors -x
