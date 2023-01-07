@@ -26,7 +26,7 @@ int main()
 		       "multiline string!!!\n")
 		return 0
 	else
-		return 1
+		return 1 // comment after termination
 ~~~
 
 and transpile it into
@@ -60,7 +60,7 @@ int main()
 	}
 	else
 	{
-		return 1;
+		return 1; //comment after termination
 	}
 }
  ~~~
