@@ -1,6 +1,6 @@
 # Indentation-Branching
 
-a parser for c allowing you to forego the usage of curlybraces and semicolons by parsing the identation + some added language specifics
+a parser for c allowing you to forego the usage of curlybraces, semicolons and in case of enums and struct initialisation list commas, by parsing the identation + some added language specifics
 
 this allows you to write
 
