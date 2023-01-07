@@ -65,7 +65,7 @@ int main()
 }
  ~~~
 
-its written in its own input, althought I provide a bootstrap c file
+its written in its own input, althought I do provide a bootstrap c file
 
 # Initial Build
 ~~~
