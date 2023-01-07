@@ -73,3 +73,11 @@ its written in its own input althought I provide a bootstrap c file
 ~~~
 (sudo) make bootstrap
 ~~~
+
+# Build with IB installed
+
+~~~
+make
+make test (compiles itself a second time to ensure that it is functional)
+make install
+~~~
