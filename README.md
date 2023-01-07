@@ -24,7 +24,7 @@ int main()
  }
  ~~~
  
- to make it as usable as possible we also added exception for constructs like enums and structs
+ to make it as usable as possible I also added exception for constructs like enums and structs
 
 its written in its own input althought I provide a bootstrap c file
 
