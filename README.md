@@ -7,6 +7,10 @@ this allows you to write
 ~~~
 #include <stdio.h>
 
+/*
+	multiline comments work sorta
+*/
+
 enum dir
 	negative
 	positive
@@ -33,6 +37,10 @@ and transpile it into
 
 ~~~
 #include <stdio.h>
+
+/*
+	multiline comments work sorta
+*/
 
 enum dir {
 	negative,
