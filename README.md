@@ -22,7 +22,7 @@ int main()
 		.y = negative
     
 	if (pt.x = positive && pt.y = negative)
-    	printf("unbelievable!!\n")
+    		printf("unbelievable!!\n")
 		return 0;
 	else
 		return 0
