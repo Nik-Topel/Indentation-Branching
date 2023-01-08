@@ -10,7 +10,7 @@ IB is written in its own input, it is approximately 60% of the length of its tra
 
 ### Example
 
-```c
+```
 // example.c.ib
 
 #if 1
