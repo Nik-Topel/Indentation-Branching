@@ -6,7 +6,7 @@ this reduces unneccasary complexity as most of us use this format while writing 
 
 ib is written in its own input, althought I also provide a transpiled c file
 
-ib itself is around 60% of the length of its verbose c counterpart
+ib itself is approximatly 60% of the length of its verbose c counterpart
 
 ### Example
 
