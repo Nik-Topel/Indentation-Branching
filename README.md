@@ -2,9 +2,17 @@
 
 a transpiler for c allowing you to forego the usage of curlybraces, semicolons and in case of enums and struct initialisation lists, commas, by parsing the identation, newlines + some added language specifics
 
-this allows you to write
+this reduces unneccasary complexity as most of us use this format while writing code, and only add these symbols because the language requires it
+
+ib is written in its own input, althought I also provide a transpiled c file
+
+ib itself is around 60% of the length of its verbose c counterpart
+
+### Example
 
 ~~~
+// example.c.ib
+
 #include <stdio.h>
 
 /*
@@ -33,9 +41,13 @@ int main()
 		return 1 // comment after termination
 ~~~
 
-and transpile it into
+~~~
+$ ib example.c.ib
+~~~
 
 ~~~
+// example.c
+
 #include <stdio.h>
 
 /*
@@ -73,18 +85,16 @@ int main()
 }
  ~~~
 
-its written in its own input, althought I do provide a bootstrap c file
-
 ### Initial Build
 ~~~
-(sudo) make bootstrap
+(root) $ make bootstrap
 ~~~
 
 ### Build with IB installed
 
 ~~~
-make
-make test (transpiles itself a second time with the new version,
+$ make
+$ make test (transpiles itself a second time with the new version,
 to ensure that it is functional before bricking your install)
-(sudo) make install
+root $ make install
 ~~~
