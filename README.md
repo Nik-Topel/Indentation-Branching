@@ -4,7 +4,7 @@ a transpiler for c allowing you to forego the usage of curlybraces, semicolons a
 
 this reduces unneccasary complexity as most of us implicitly use this format while writing code, and only add these symbols because the language requires it
 
-one of the most common complaints about programming in c-style languages is missing semicolons
+one of the most common issue in c-style languages is missing semicolons
 
 and the endless debate where to put the braces is also starting to get old
 
