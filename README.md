@@ -2,7 +2,9 @@
 
 a transpiler for c allowing you to forego the usage of curlybraces, semicolons and in case of enums and struct initialisation lists, commas, by parsing the identation, newlines + some added language specifics
 
-this reduces unneccasary complexity as most of us use this format while writing code, and only add these symbols because the language requires it
+this reduces unneccasary complexity as most of us implicitly use this format while writing code, and only add these symbols because the language requires it
+
+one of the most common complaints about programming in c-style languages is missing semicolons
 
 ib is written in its own input, althought I also provide a transpiled c file
 
