@@ -109,7 +109,7 @@ displaying tabs and spaces is strongly recommended as missing any indentation wi
 
 typically the syntax highlighting of the language works if forced
 
-VIM:
+- VIM:
 ~~~
 au! BufRead,BufNewFile *.c.ib setfiletype c
 
