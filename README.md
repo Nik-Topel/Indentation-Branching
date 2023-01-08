@@ -95,8 +95,10 @@ int main()
 
 ~~~
 $ make
+
 $ make test (transpiles itself to ensure that you are not installing a faulty build)
-root $ make install
+
+(root) $ make install
 ~~~
 
 ### Editors
