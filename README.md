@@ -95,8 +95,7 @@ int main()
 
 ~~~
 $ make
-$ make test (transpiles itself a second time with the new version,
-to ensure that it is functional before bricking your install)
+$ make test (transpiles itself to ensure that you are not installing a faulty build)
 root $ make install
 ~~~
 
