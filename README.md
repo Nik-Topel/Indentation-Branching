@@ -13,7 +13,10 @@ IB is written in its own input, it is approximately 60% of the length of its tra
 ```c
 // example.c.ib
 
-#include <stdio.h>
+#if 1
+    #include <stdio.h>
+#else
+    #error "not possible"
 
 /*
     multiline comments work sorta
@@ -49,7 +52,11 @@ $ ib example.c.ib --spaces 4 (note: this flag is only required for people who us
 ```c
 // example.c
 
-#include <stdio.h>
+#if 1
+    #include <stdio.h>
+#else
+    #error "not possible"
+#endif
 
 /*
     multiline comments work sorta
