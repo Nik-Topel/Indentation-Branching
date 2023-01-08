@@ -1,12 +1,12 @@
 # Indentation-Branching
 
-a transpiler for c-style languages allowing you to forego the usage of curlybraces, semicolons and in case of enums and struct initialisation lists, commas, by parsing the identation, newlines + some added language specifics
+A transpiler for c-style languages allowing you to forego the usage of curlybraces, semicolons and in case of enums and struct initialisation lists, commas, by parsing the identation, newlines and some added language specifics.
 
-this reduces unneccasary complexity as most of us implicitly use this format while writing code, and only add these symbols because the language requires it
+This reduces unnecessary complexity as most of us implicitly use this format while writing code, and only add these symbols because the language requires it.
 
-one of the most common issues in c-style languages is missing semicolons and the endless debate where to put the braces is also starting to get old
+One of the most common issues in c-style languages is missing semicolons and the endless debate where to put the braces.
 
-ib is written in its own input, it is approximatly 60% of the length of its transpiled c counterpart and 90% of the file size
+IB is written in its own input, it is approximately 60% of the length of its transpiled c counterpart and 90% of the file size.
 
 ### Example
 
@@ -105,7 +105,7 @@ $ make test (transpiles itself to ensure that you are not installing a faulty bu
 
 looks best with a smaller tab size, using spaces as tabs is supported by a special flag but not recommended.
 
-displaying tabs and spaces is strongly recommended as any inproper indentation will completly break your code
+displaying tabs and spaces is strongly recommended as any improper indentation will completly break your code
 
 typically the syntax highlighting of the language works if forced
 
