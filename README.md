@@ -100,3 +100,21 @@ $ make test (transpiles itself a second time with the new version,
 to ensure that it is functional before bricking your install)
 root $ make install
 ~~~
+
+### Editors
+
+looks best with a smaller tab size, using spaces as tabs is supported by a special flag but not recommended
+displaying tabs and spaces is strongly recommended
+
+typically the syntax highlighting of the language works if forced
+
+VIM:
+~~~
+au! BufRead,BufNewFile *.c.ib setfiletype c
+
+set tabstop=4
+set shiftwidth=4
+
+set list
+set listchars=tab:>\ ,space:.
+~~~
