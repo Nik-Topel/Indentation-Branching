@@ -18,7 +18,7 @@ ib itself is approximatly 60% of the length of its verbose c counterpart
 #include <stdio.h>
 
 /*
-	multiline comments work sorta
+    multiline comments work sorta
 */
 
 enum dir
