@@ -3,6 +3,7 @@
  *                                */
 
 /* todo:
+	loc counter for messages
 	cpp nesting, endif
 */
 
@@ -13,7 +14,7 @@
 
 #include <limits.h>
 #ifndef LINE_MAX
-#define LINE_MAX 2048
+	#define LINE_MAX 2048
 #endif
 
 #include <stdio.h>
@@ -28,20 +29,16 @@ typedef unsigned short psize;
 
 enum ansi_color
 {
-	red = 36,
+	blank = 0,
+	magenta = 32,
 	yellow = 33,
-	magenta = 32
+	red = 36
 };
 typedef enum ansi_color color;
 
 static void set_color(const color c)
 {
 	printf("\033[%dm", c);
-}
-
-static void unset_color()
-{
-	printf("\033[0m");
 }
 
 static void msg_out(const size_t num, ...)
@@ -60,7 +57,7 @@ static noreturn void error(const char *msg, const int code)
 {
 	set_color(red);
 	msg_out(2, "error", msg);
-	unset_color();
+	set_color(blank);
 	exit(code);
 }
 
@@ -68,7 +65,7 @@ static void warn(const char *typ, const char *msg)
 {
 	set_color(yellow);
 	msg_out(3, "warning", typ, msg);
-	unset_color();
+	set_color(blank);
 }
 
 struct line_type
@@ -214,9 +211,13 @@ static void terminate(line_t *line, const char tchar)
 static void brackinate(FILE *out, const psize tabs, const char br, context *cont)
 {
 	psize t = 0;
-	while(t++ < tabs)
+	while(!spaces && t++ < tabs)
 	{
 		fputc('\t', out);
+	}
+	while(spaces && t++ < get_spaces(tabs))
+	{
+		fputc(' ', out);
 	}
 	fputc(br, out);
 	if (br != '{' && cont->tbranchc && cont->tbranchs[cont->tbranchc - 1] == tabs)
@@ -252,6 +253,10 @@ static void termcheck(line_t *line, line_t *l_line, context *cont)
 {
 	if (cont->ftype == c && l_line->str[get_spaces(l_line->tabs)] == '#')
 	{
+		if (line->tabs > l_line->tabs)
+		{
+			cont->nbranchs[cont->nbranchc++] = l_line->tabs;
+		}
 		return;
 	}
 	if (line->tabs <= l_line->tabs)
@@ -382,6 +387,7 @@ static noreturn void help()
 	     " -h --help    -> print this page\n" \
 	     " -v --version -> show current version\n" \
 	     " -o --output  -> overwrite output path for *ALL* defined ib files\n" \
+	     " -s --spaces  -> use defined amount of spaces as indentation\n" \
 	     " -S --stdout  -> output to stdout instead of file");
 	exit(0);
 }
@@ -446,6 +452,8 @@ static amode short_arg_parser(const char *arg)
 				version();
 			case 'o':
 				return soutput;
+			case 's':
+				return space;
 			case 'S':
 				to_stdout = true;
 				return nothing;
