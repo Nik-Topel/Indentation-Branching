@@ -88,7 +88,7 @@ int main()
 
 ### Initial Build
 ~~~
-(root) $ make bootstrap (compiles provided pretranspiled file and installs it in /usr/bin/)
+(root) $ make bootstrap (compiles provided pretranspiled file and installs it in ${PREFIX}/bin/)
 ~~~
 
 ### Build with IB installed
