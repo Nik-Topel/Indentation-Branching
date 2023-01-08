@@ -22,25 +22,25 @@ ib itself is approximatly 60% of the length of its verbose c counterpart
 */
 
 enum dir
-	negative = -1
-	positive = 1
-	neutral  = 0
+    negative = -1
+    positive = 1
+    neutral  = 0
 
 struct point
-	enum dir x
-	enum dir y
+    enum dir x
+    enum dir y
 
 int main()
-	struct point pt =
-		.x = positive
-		.y = negative
+    struct point pt =
+        .x = positive
+        .y = negative
     
-	if (pt.x = positive && pt.y = negative)
-    		printf("unbelievable!! " \
-		       "multiline string!!!\n")
-		return 0
-	else
-		return 1 // comment after termination
+    if (pt.x = positive && pt.y = negative)
+        printf("unbelievable!! " \
+               "multiline string!!!\n")
+        return 0
+    else
+        return 1 // comment after termination
 		
 ```
 
@@ -54,37 +54,37 @@ $ ib example.c.ib
 #include <stdio.h>
 
 /*
-	multiline comments work sorta
+    multiline comments work sorta
 */
 
 enum dir {
-	negative = -1,
-	positive = 1,
-	neutral  = 0
+    negative = -1,
+    positive = 1,
+    neutral  = 0
 };
 
 struct point {
- 	enum dir x;
- 	enum dir y;
+    enum dir x;
+    enum dir y;
 };
 
 int main()
 {
-	struct point pt = {
-    		.x = positive,
-		.y = negative
-	};
+    struct point pt = {
+        .x = positive,
+        .y = negative
+    };
     
-    	if (pt.x = positive && pt.y = negative)
-    	{
-		printf("unbelievable!! " \
-		       "multiline string!!!\n");
-		return 0;
-	}
-	else
-	{
-		return 1; //comment after termination
-	}
+    if (pt.x = positive && pt.y = negative)
+    {
+        printf("unbelievable!! " \
+               "multiline string!!!\n");
+        return 0;
+    }
+    else
+    {
+        return 1; //comment after termination
+    }
 }
 ```
 
