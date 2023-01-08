@@ -22,9 +22,9 @@ ib itself is approximatly 60% of the length of its verbose c counterpart
 */
 
 enum dir
-	negative
-	positive
-	neutral
+	negative = -1
+	positive = 1
+	neutral  = 0
 
 struct point
 	enum dir x
@@ -58,9 +58,9 @@ $ ib example.c.ib
 */
 
 enum dir {
-	negative,
-	positive,
-	neutral
+	negative = -1,
+	positive = 1,
+	neutral  = 0
 };
 
 struct point {
