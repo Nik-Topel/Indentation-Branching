@@ -103,8 +103,9 @@ root $ make install
 
 ### Editors
 
-looks best with a smaller tab size, using spaces as tabs is supported by a special flag but not recommended
-displaying tabs and spaces is strongly recommended
+looks best with a smaller tab size, using spaces as tabs is supported by a special flag but not recommended.
+
+displaying tabs and spaces is strongly recommended as missing any indentation will completly break your code
 
 typically the syntax highlighting of the language works if forced
 
