@@ -2,25 +2,47 @@
  *   ib (indentation branching)   *
  *                                */
 
-#define VERSION "0.11"
+/* todo:
+	cpp nesting, endif
+*/
+
+#define VERSION "0.12"
 
 #define CONT_MAX 256
 #define FILE_MAX 256
+
+#include <limits.h>
+#ifndef LINE_MAX
+#define LINE_MAX 2048
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
-#include <limits.h>
-
-#ifndef LINE_MAX
-#	define LINE_MAX 2048
-#endif
 
 #define noreturn _Noreturn
 
 typedef unsigned short psize;
+
+enum ansi_color
+{
+	red = 36,
+	yellow = 33,
+	magenta = 32
+};
+typedef enum ansi_color color;
+
+static void set_color(const color c)
+{
+	printf("\033[%dm", c);
+}
+
+static void unset_color()
+{
+	printf("\033[0m");
+}
 
 static void msg_out(const size_t num, ...)
 {
@@ -36,26 +58,25 @@ static void msg_out(const size_t num, ...)
 
 static noreturn void error(const char *msg, const int code)
 {
-	printf("\033[36m");
+	set_color(red);
 	msg_out(2, "error", msg);
-	printf("\033[0m");
+	unset_color();
 	exit(code);
 }
 
 static void warn(const char *typ, const char *msg)
 {
-	printf("\033[33m");
+	set_color(yellow);
 	msg_out(3, "warning", typ, msg);
-	printf("\033[0m");
+	unset_color();
 }
 
 struct line_type
 {
-	psize comment;
-	psize tabs;
+	psize  comment;
+	psize  tabs;
 	char   str[LINE_MAX];
 };
-
 typedef struct line_type line_t;
 
 enum filetype
@@ -63,7 +84,6 @@ enum filetype
 	norm,
 	c
 };
-
 typedef enum filetype type;
 
 struct parser_context
@@ -76,9 +96,13 @@ struct parser_context
 	psize      nbranchs[CONT_MAX];
 	psize      ctermc;
 	psize      cterms[CONT_MAX];
+	char       bmsgss[CONT_MAX][LINE_MAX];
 };
-
 typedef struct parser_context context;
+
+psize spaces = 0;
+bool to_stdout = false;
+char *overwrite_out = NULL;
 
 static void transfere_line(line_t *line, line_t *input_line)
 {
@@ -96,7 +120,7 @@ static psize find_valid(const char *line, const char *tok)
 	{
 		if (open)
 		{
-			ptr = strstr(ptr + 1, tok); // test
+			ptr = strstr(ptr + 1, tok);
 		}
 		ptf  = strchr(ptf + 1, '"');
 		open = !open;
@@ -128,6 +152,11 @@ static psize find_end(const char *line, context *cont)
 	return sline < mline ? sline : mline;
 }
 
+static psize get_spaces(const psize tab)
+{
+	return spaces == 0 ? tab : tab * spaces;
+}
+
 static bool get_line(line_t *line, FILE *file, context *cont)
 {
 	if (!fgets(line->str, LINE_MAX, file))
@@ -136,7 +165,7 @@ static bool get_line(line_t *line, FILE *file, context *cont)
 		return false;
 	}
 	psize size = strlen(line->str);
-	line->tabs = strspn(line->str, "\t");
+	line->tabs = spaces == 0 ? strspn(line->str, "\t") : strspn(line->str, " ") / spaces;
 	while (line->str[size - 2] == '\\')
 	{
 		char apnd[LINE_MAX];
@@ -170,7 +199,7 @@ static bool check_word(const char *line, const char *word, const char *stop)
 
 static void terminate(line_t *line, const char tchar)
 {
-	if (line->comment <= line->tabs + 1)
+	if (line->comment <= get_spaces(line->tabs) + 1)
 	{
 		return;
 	}
@@ -221,7 +250,7 @@ static void branchcheck(FILE *out, psize *tabs, const psize tar, context *cont)
 
 static void termcheck(line_t *line, line_t *l_line, context *cont)
 {
-	if (cont->ftype == c && l_line->str[l_line->tabs] == '#')
+	if (cont->ftype == c && l_line->str[get_spaces(l_line->tabs)] == '#')
 	{
 		return;
 	}
@@ -237,9 +266,9 @@ static void termcheck(line_t *line, line_t *l_line, context *cont)
 		}
 		terminate(l_line, ';');
 	}
-	else if ((!strchr(l_line->str, '(') && l_line->comment > l_line->tabs + 1 && \
-	          strncmp("else", l_line->str + l_line->tabs, 4) && \
-	          strncmp("do", l_line->str + l_line->tabs, 2)))
+	else if ((!strchr(l_line->str, '(') && l_line->comment > get_spaces(l_line->tabs) + 1 && \
+	          strncmp("else", l_line->str + get_spaces(l_line->tabs), 4) && \
+	          strncmp("do", l_line->str + get_spaces(l_line->tabs), 2)))
 	{
 		if (l_line->str[l_line->comment - 2] == '=' || \
 		    check_word(l_line->str, "enum", strchr(l_line->str, '(')))
@@ -252,10 +281,6 @@ static void termcheck(line_t *line, line_t *l_line, context *cont)
 			return;
 		}
 		cont->tbranchs[cont->tbranchc++] = l_line->tabs;
-	}
-	else if (l_line->str[l_line->comment - 2] == ':')
-	{
-		cont->nbranchs[cont->nbranchc++] = l_line->tabs;
 	}
 }
 
@@ -296,7 +321,11 @@ static type modeset(const char *path)
 	const char *dot = strrchr(path, '.');
 	if (dot)
 	{
-		if (!strcmp(dot, ".c") || !strcmp(dot, ".h"))
+		if (!strcmp(dot, ".c")   || !strcmp(dot, ".h"))
+		{
+			return c;
+		}
+		if (!strcmp(dot, ".cpp") || !strcmp(dot, ".hpp"))
 		{
 			return c;
 		}
@@ -307,19 +336,36 @@ static type modeset(const char *path)
 
 static void load_file(char *path)
 {
-	if (strlen(path) < 3 || strcmp(path + strlen(path) - 3, ".ib"))
-	{
-		error("defined input is not a ib file", 1);
-	}
 	FILE *src = fopen(path, "r");
 	if (!src)
 	{
 		error("failed to open source", 1);
 	}
-	char out_path[255];
-	strncpy(out_path, path, strrchr(path,'.') - path);
-	path[strrchr(path, '.') - path] = '\0';
-	FILE *out = fopen(path, "w");
+	FILE *out;
+	if (to_stdout)
+	{
+		out = stdout;
+	}
+	else if (overwrite_out)
+	{
+		out = fopen(overwrite_out, "wa");
+	}
+	else
+	{
+		char out_path[255];
+		if (strlen(path) < 4 || strcmp(path + strlen(path) - 3, ".ib"))
+		{
+			warn("defined input is not a ib file", path);
+			strcpy(out_path, path);
+			strcat(out_path, ".unib");
+		}
+		else
+		{
+			strncpy(out_path, path, strrchr(path,'.') - path);
+			path[strrchr(path, '.') - path] = '\0';
+		}
+		out = fopen(path, "w");
+	}
 	if (!out)
 	{
 		error("failed to open destination", 1);
@@ -329,66 +375,133 @@ static void load_file(char *path)
 	fclose(out);
 }
 
-static void help()
+static noreturn void help()
 {
-	puts("Usage ib: [FILE] ...\n" \
+	puts("Usage ib: [FILE] ...\n\n" \
 	     "ib is a transpiler for languages which are not line based\n\n" \
 	     " -h --help    -> print this page\n" \
-	     " -v --version -> show current version");
+	     " -v --version -> show current version\n" \
+	     " -o --output  -> overwrite output path for *ALL* defined ib files\n" \
+	     " -S --stdout  -> output to stdout instead of file");
 	exit(0);
 }
 
-static void version()
+static noreturn void version()
 {
 	fputs("Ib version "VERSION"\n", stdout);
 	exit(0);
 }
 
-static bool argument_parser(const char *arg)
+enum arg_mode
+{
+	noarg,
+	nothing,
+	space,
+	soutput
+};
+typedef enum arg_mode amode;
+
+static amode long_arg_parser(const char *arg)
+{
+	if (!strcmp("version", arg))
+	{
+		version();
+	}
+	if (!strcmp("help", arg))
+	{
+		help();
+	}
+	if (!strcmp("tab", arg))
+	{
+		spaces = 0;
+		return nothing;
+	}
+	if (!strcmp("spaces", arg))
+	{
+		return space;
+	}
+	if (!strcmp("stdout", arg))
+	{
+		to_stdout = true;
+		return nothing;
+	}
+	if (!strcmp("output", arg))
+	{
+		return soutput;
+	}
+	warn("invalid option", arg);
+	return nothing;
+}
+
+static amode short_arg_parser(const char *arg)
+{
+	psize i = 0 ;
+	while(arg[i])
+	{
+		switch (arg[i])
+		{
+			case 'h':
+				help();
+			case 'V':
+				version();
+			case 'o':
+				return soutput;
+			case 'S':
+				to_stdout = true;
+				return nothing;
+			default :
+				char invalid[1];
+				invalid[0] = arg[i];
+				warn("invalid option", invalid);
+				return nothing;
+		}
+		i++;
+	}
+	return nothing;
+}
+
+static amode arg_parser(char *arg, const amode last)
 {
 	if (arg[0] != '-' || strlen(arg) < 2)
 	{
-		return false;
+		switch (last)
+		{
+			case space:
+				spaces = atoi(arg);
+				return nothing;
+			case soutput:
+				overwrite_out = arg;
+				return nothing;
+			case nothing:;
+			case noarg:
+				return noarg;
+		}
 	}
-	switch (arg[1])
+	if (arg[1] == '-')
 	{
-		case '-':
-			if (!strcmp("version", arg + 2))
-			{
-				version();
-			}
-			if (!strcmp("help", arg + 2))
-			{
-				help();
-			}
-			warn("invalid option", arg);
-			return true;
-		case 'h':
-			help();
-		case 'V':
-			version();
-		default :
-			warn("invalid option", arg);
-			return true;
+		return long_arg_parser(arg + 2);
 	}
+	return short_arg_parser(arg + 1);
 }
 
 int main(const int argc, char **argv)
 {
 	if (argc < 2)
 	{
-		error("missing arguments", 1);
-	}
-	if (argc > FILE_MAX)
-	{
-		error("too many files", 1);
+		help();
 	}
 	char *paths[FILE_MAX];
 	psize pathc = 0;
+	amode argument = nothing;
 	while (*++argv)
 	{
-		if (!argument_parser(*argv))
+		argument = arg_parser(*argv, argument);
+		if (argument == noarg)
 		{
+			if (pathc == FILE_MAX)
+			{
+				error("too many files", 1);
+			}
 			paths[pathc++] = *argv;
 		}
 	}
