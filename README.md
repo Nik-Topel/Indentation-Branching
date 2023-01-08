@@ -106,7 +106,7 @@ root $ make install
 
 looks best with a smaller tab size, using spaces as tabs is supported by a special flag but not recommended.
 
-displaying tabs and spaces is strongly recommended as missing any indentation will completly break your code
+displaying tabs and spaces is strongly recommended as any inproper indentation will completly break your code
 
 typically the syntax highlighting of the language works if forced
 
