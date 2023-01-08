@@ -6,6 +6,8 @@ this reduces unneccasary complexity as most of us implicitly use this format whi
 
 one of the most common complaints about programming in c-style languages is missing semicolons
 
+and the endless debate where to put the braces is also starting to get old
+
 ib is written in its own input, althought I also provide a transpiled c file
 
 ib itself is approximatly 60% of the length of its verbose c counterpart
