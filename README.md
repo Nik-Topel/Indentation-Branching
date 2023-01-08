@@ -12,7 +12,7 @@ ib itself is approximatly 60% of the length of its verbose c counterpart
 
 ### Example
 
-~~~
+```c
 // example.c.ib
 
 #include <stdio.h>
@@ -41,13 +41,14 @@ int main()
 		return 0
 	else
 		return 1 // comment after termination
-~~~
+		
+```
 
-~~~
+```bash
 $ ib example.c.ib
-~~~
+```
 
-~~~
+```c
 // example.c
 
 #include <stdio.h>
@@ -85,7 +86,7 @@ int main()
 		return 1; //comment after termination
 	}
 }
- ~~~
+```
 
 ### Initial Build
 ~~~
