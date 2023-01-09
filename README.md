@@ -39,7 +39,7 @@ int main()
     if (pt.x = positive && pt.y = negative)
     	const char strings[2] =
 		"unbelievable!!" \
-		multiline string!!!\s"
+		"multiline string!!!\s"
 		"another string"
         printf("%s%s", strings[0], strings[1])
         return 0
@@ -87,7 +87,7 @@ int main()
     {
         const char strings[2] = {
 		"unbelievable!!" \
-		multiline string!!!\s",
+		"multiline string!!!\s",
 		"another string"
 	};
         printf("%s%s", strings[0], strings[1]);
