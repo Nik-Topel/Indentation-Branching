@@ -1,6 +1,6 @@
 # Indentation-Branching
 
-A transpiler for c-style languages allowing you to forego the usage of curlybraces, semicolons, in case of enums and struct initialisation lists, commas and for preprocessor branching "#endif" by parsing the identation, newlines and some added language specifics.
+A transpiler for c-style languages allowing you to forego the usage of curlybraces, semicolons, in case of enums and initialisation lists, commas and for preprocessor branching "#endif" by parsing the identation, newlines and some added language specifics.
 
 This reduces unnecessary complexity as most of us implicitly use this format while writing code, and only add these symbols because the language requires it.
 
